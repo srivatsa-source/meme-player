@@ -702,7 +702,40 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
-    /* Mobile Responsive */
+    /* Mobile Responsive - Camera Modal */
+    @media (max-width: 600px) {
+      .camera-container {
+        max-width: 100%;
+        max-height: 60vh;
+      }
+      .camera-controls {
+        margin-top: 1rem;
+        gap: 0.5rem;
+      }
+      .camera-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.85rem;
+        gap: 0.4rem;
+      }
+      .camera-btn i {
+        font-size: 0.9rem;
+      }
+      .camera-preview img {
+        max-width: 200px;
+      }
+    }
+    
+    @media (max-width: 400px) {
+      .camera-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+      .camera-preview img {
+        max-width: 150px;
+      }
+    }
+    
+    /* Mobile Responsive - Splash Screen */
     @media (max-width: 600px) {
       .splash-content {
         padding: 2rem 1.5rem;
@@ -1008,6 +1041,8 @@
   let activeBg = 0; // 0 -> bgA visible, 1 -> bgB visible
 
     // Meme Vault: localStorage management
+    let songsListenedFully = new Set();
+    
     function getCollectedMemes() {
       const stored = localStorage.getItem('oraMemeVault');
       return stored ? JSON.parse(stored) : [];
@@ -1018,8 +1053,55 @@
         collected.push(memeId);
         localStorage.setItem('oraMemeVault', JSON.stringify(collected));
         updateVaultBadge();
-        showToast(`🎉 New meme unlocked! (${collected.length}/${TOTAL_MEMES})`);
+        
+        // Show special notification for new meme unlock
+        showMemeUnlockNotification(memeId, collected.length);
       }
+    }
+    function showMemeUnlockNotification(memeId, totalCollected) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        z-index: 10001;
+        animation: slideInRight 0.5s ease, fadeOut 0.5s ease 3.5s forwards;
+        max-width: 300px;
+        font-size: 0.95rem;
+      `;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.8rem;">
+          <i class="fa-solid fa-trophy" style="font-size: 1.5rem; color: #ffd700;"></i>
+          <div>
+            <div style="font-weight: bold; margin-bottom: 0.3rem;">🎉 New Meme Unlocked!</div>
+            <div style="font-size: 0.85rem; opacity: 0.9;">Collected ${totalCollected}/${TOTAL_MEMES} memes</div>
+          </div>
+        </div>
+      `;
+      
+      // Add animation keyframes if not exists
+      if (!document.getElementById('memeNotifStyle')) {
+        const style = document.createElement('style');
+        style.id = 'memeNotifStyle';
+        style.textContent = `
+          @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(400px); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 4000);
     }
     function updateVaultBadge() {
       const collected = getCollectedMemes();
@@ -1085,8 +1167,7 @@
       memeImage.onload = () => { memeImage.style.opacity = '1'; memeImage.onload = null; };
       memeImage.src = memePlaceholder;
       
-      // collect first meme on init
-      addCollectedMeme(item.memeId);
+      // Don't collect meme on init - require full listen
       
       player.play().catch(() => {});
       const icon = document.querySelector('#playPause i');
@@ -1116,8 +1197,7 @@
       memeImage.onload = () => { memeImage.style.opacity = '1'; memeImage.onload = null; };
       memeImage.src = memePlaceholder;
 
-      // collect meme when track changes
-      addCollectedMeme(item.memeId);
+      // Don't collect meme when track changes - require full listen
 
       // subtle card pop
       card.classList.add('pop');
@@ -1251,6 +1331,26 @@
     document.getElementById('next').onclick = () => nextTrack();
     document.getElementById('prev').onclick = () => prevTrack();
 
+    // Track song completion to unlock memes
+    player.addEventListener('timeupdate', () => {
+      const item = playlist[currentSong];
+      const duration = player.duration;
+      const currentTime = player.currentTime;
+      
+      // Check if song is at least 90% complete
+      if (duration && currentTime / duration >= 0.9) {
+        const songKey = `${item.src}_${item.memeId}`;
+        if (!songsListenedFully.has(songKey)) {
+          songsListenedFully.add(songKey);
+          // Unlock the meme only after listening to 90% of the song
+          addCollectedMeme(item.memeId);
+        }
+      }
+    });
+
+    // advance automatically when a track ends
+    player.onended = () => nextTrack();
+
     // helper: show small toast
     function showToast(msg, ms = 3000) {
       toast.textContent = msg;
@@ -1266,9 +1366,6 @@
       confirmEl.classList.add('show');
       setTimeout(() => confirmEl.classList.remove('show'), ms);
     }
-
-    // advance automatically when a track ends
-    player.onended = () => nextTrack();
 
     // VHS timer animation on splash screen
     let splashTimer = 0;

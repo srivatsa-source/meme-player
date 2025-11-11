@@ -1005,12 +1005,13 @@
 
   <script>
     // Playlist is paired by index: the nth song uses the nth background from bg_img/
+    // Each song unlocks 3 memes (5 songs × 3 memes = 15 total memes)
     const playlist = [
-      { src: 'songs/Djo - End Of Beginning (Official Audio).mp3', name: 'Djo - End Of Beginning', bg: 'bg_img/bg_1.png', memeId: 1 },
-      { src: 'songs/imaseNIGHT DANCERMV.mp3', name: 'imaseNIGHT DANCER', bg: 'bg_img/bg_2.jpg', memeId: 2 },
-      { src: 'songs/JVKE - golden hour (official music video).mp3', name: 'JVKE - golden hour', bg: 'bg_img/bg_3.png', memeId: 3 },
-      { src: 'songs/Sapta Sagaradaache Ello - Title Track  Rakshit Shetty  Rukmini  Hemanth M Rao Charan Raj  Kapil.mp3', name: 'Sapta Sagaradaache Ello - Title Track', bg: 'bg_img/bg_4.jpg', memeId: 4 },
-      { src: 'songs/The Kid LAROI, Justin Bieber - Stay (Lyrics).mp3', name: 'The Kid LAROI & Justin Bieber - Stay', bg: 'bg_img/bg_5.jpg', memeId: 5 }
+      { src: 'songs/Djo - End Of Beginning (Official Audio).mp3', name: 'Djo - End Of Beginning', bg: 'bg_img/bg_1.png', memeIds: [1, 2, 3] },
+      { src: 'songs/imaseNIGHT DANCERMV.mp3', name: 'imaseNIGHT DANCER', bg: 'bg_img/bg_2.jpg', memeIds: [4, 5, 6] },
+      { src: 'songs/JVKE - golden hour (official music video).mp3', name: 'JVKE - golden hour', bg: 'bg_img/bg_3.png', memeIds: [7, 8, 9] },
+      { src: 'songs/Sapta Sagaradaache Ello - Title Track  Rakshit Shetty  Rukmini  Hemanth M Rao Charan Raj  Kapil.mp3', name: 'Sapta Sagaradaache Ello - Title Track', bg: 'bg_img/bg_4.jpg', memeIds: [10, 11, 12] },
+      { src: 'songs/The Kid LAROI, Justin Bieber - Stay (Lyrics).mp3', name: 'The Kid LAROI & Justin Bieber - Stay', bg: 'bg_img/bg_5.jpg', memeIds: [13, 14, 15] }
     ];
 
   // For vault: we'll assume 15 unique memes exist (5 bg images cycle + extra slots for future)
@@ -1112,16 +1113,16 @@
       const grid = document.getElementById('vaultGrid');
       grid.innerHTML = '';
       
-      // map memeId to bg image (cycle through 5 images for 15 slots)
+      // Display all 15 memes from the memes folder
       for (let i = 1; i <= TOTAL_MEMES; i++) {
         const item = document.createElement('div');
         item.className = 'vault-item';
         if (collected.includes(i)) {
           item.classList.add('collected');
-          const bgIndex = ((i - 1) % 5);
-          const bgImage = playlist[bgIndex].bg;
+          // Use actual meme images
+          const memeFile = i === 1 ? 'memes/meme 1.png' : `memes/meme ${i}.jpg`;
           const img = document.createElement('img');
-          img.src = bgImage;
+          img.src = memeFile;
           img.alt = `Meme ${i}`;
           item.appendChild(img);
         } else {
@@ -1339,11 +1340,13 @@
       
       // Check if song is at least 90% complete
       if (duration && currentTime / duration >= 0.9) {
-        const songKey = `${item.src}_${item.memeId}`;
+        const songKey = `${item.src}`;
         if (!songsListenedFully.has(songKey)) {
           songsListenedFully.add(songKey);
-          // Unlock the meme only after listening to 90% of the song
-          addCollectedMeme(item.memeId);
+          // Unlock all 3 memes for this song after listening to 90%
+          item.memeIds.forEach(memeId => {
+            addCollectedMeme(memeId);
+          });
         }
       }
     });

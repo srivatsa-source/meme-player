@@ -1102,14 +1102,24 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script>
-    // Playlist is paired by index: the nth song uses the nth background from bg_img/
-    // Each song unlocks 3 memes (5 songs × 3 memes = 15 total memes)
+    // Playlist with 15 songs - each song unlocks 1 meme (15 songs = 15 memes)
+    // Backgrounds cycle through the 5 available bg images
     const playlist = [
-      { src: 'songs/Djo - End Of Beginning (Official Audio).mp3', name: 'Djo - End Of Beginning', bg: 'bg_img/bg_1.png', memeIds: [1, 2, 3] },
-      { src: 'songs/imaseNIGHT DANCERMV.mp3', name: 'imaseNIGHT DANCER', bg: 'bg_img/bg_2.jpg', memeIds: [4, 5, 6] },
-      { src: 'songs/JVKE - golden hour (official music video).mp3', name: 'JVKE - golden hour', bg: 'bg_img/bg_3.png', memeIds: [7, 8, 9] },
-      { src: 'songs/Sapta Sagaradaache Ello - Title Track  Rakshit Shetty  Rukmini  Hemanth M Rao Charan Raj  Kapil.mp3', name: 'Sapta Sagaradaache Ello - Title Track', bg: 'bg_img/bg_4.jpg', memeIds: [10, 11, 12] },
-      { src: 'songs/The Kid LAROI, Justin Bieber - Stay (Lyrics).mp3', name: 'The Kid LAROI & Justin Bieber - Stay', bg: 'bg_img/bg_5.jpg', memeIds: [13, 14, 15] }
+      { src: 'songs/Djo - End Of Beginning (Official Audio).mp3', name: 'Djo - End Of Beginning', bg: 'bg_img/bg_1.png', memeIds: [1] },
+      { src: 'songs/imaseNIGHT DANCERMV.mp3', name: 'imase - NIGHT DANCER', bg: 'bg_img/bg_2.jpg', memeIds: [2] },
+      { src: 'songs/JVKE - golden hour (official music video).mp3', name: 'JVKE - golden hour', bg: 'bg_img/bg_3.png', memeIds: [3] },
+      { src: 'songs/Sapta Sagaradaache Ello - Title Track  Rakshit Shetty  Rukmini  Hemanth M Rao Charan Raj  Kapil.mp3', name: 'Sapta Sagaradaache Ello - Title Track', bg: 'bg_img/bg_4.jpg', memeIds: [4] },
+      { src: 'songs/The Kid LAROI, Justin Bieber - Stay (Lyrics).mp3', name: 'The Kid LAROI & Justin Bieber - Stay', bg: 'bg_img/bg_5.jpg', memeIds: [5] },
+      { src: 'songs/The Weeknd - Save Your Tears (Lyrics).mp3', name: 'The Weeknd - Save Your Tears', bg: 'bg_img/bg_1.png', memeIds: [6] },
+      { src: 'songs/OneRepublic - Nobody (Lyrics).mp3', name: 'OneRepublic - Nobody', bg: 'bg_img/bg_2.jpg', memeIds: [7] },
+      { src: 'songs/One Direction - Story of My Life.mp3', name: 'One Direction - Story of My Life', bg: 'bg_img/bg_3.png', memeIds: [8] },
+      { src: 'songs/My Way.mp3', name: 'My Way', bg: 'bg_img/bg_4.jpg', memeIds: [9] },
+      { src: "songs/Ain't Nobody (From DC).mp3", name: "Ain't Nobody", bg: 'bg_img/bg_5.jpg', memeIds: [10] },
+      { src: 'songs/Arijit Singh, Pritam - Ae Dil Hai Mushkil (lyrics).mp3', name: 'Arijit Singh - Ae Dil Hai Mushkil', bg: 'bg_img/bg_1.png', memeIds: [11] },
+      { src: 'songs/Ale Aleyo Audio Song   Savaari  Srinagara Kitty  Raghu Mukherjee  Kamalinee Mukherjee.mp3', name: 'Ale Aleyo - Savaari', bg: 'bg_img/bg_2.jpg', memeIds: [12] },
+      { src: 'songs/Mungaru Male  Anisuthide Song Lyrics  Sonu Nigam Ganesh  Pooja Gandhi Manomurthy Yogaraj Bhat.mp3', name: 'Mungaru Male - Anisuthide', bg: 'bg_img/bg_3.png', memeIds: [13] },
+      { src: 'songs/Ommomme Heegu Aaguvudu - Video Song  Hudugata  Golden Star Ganesh & Rekha Vedavyas Hit Song.mp3', name: 'Ommomme Heegu Aaguvudu - Hudugata', bg: 'bg_img/bg_4.jpg', memeIds: [14] },
+      { src: 'songs/Oorum Blood  Dude  Pradeep Ranganathan, Mamitha Baiju  @SaiAbhyankkar  Paal Dabba Keerthiswaran.mp3', name: 'Oorum Blood - Dude', bg: 'bg_img/bg_5.jpg', memeIds: [15] }
     ];
 
   // For vault: we'll assume 15 unique memes exist (5 bg images cycle + extra slots for future)

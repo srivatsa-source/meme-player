@@ -390,6 +390,85 @@
       font-size: 0.9rem;
     }
 
+    /* Meme Viewer Modal */
+    #memeViewerModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    #memeViewerModal.show { display: flex; }
+    .meme-viewer-content {
+      max-width: 600px;
+      max-height: 90vh;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-radius: 20px;
+      padding: 24px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .meme-viewer-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .meme-viewer-close:hover { background: rgba(255,255,255,0.3); }
+    .meme-viewer-image {
+      max-width: 100%;
+      max-height: 60vh;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+    .meme-viewer-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .meme-viewer-btn {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .meme-viewer-btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+    }
+
     /* Splash Screen - VHS/Retro Style */
     .splash-screen {
       position: fixed;
@@ -947,6 +1026,24 @@
     </div>
   </div>
 
+  <!-- Meme Viewer Modal -->
+  <div id="memeViewerModal">
+    <div class="meme-viewer-content">
+      <button class="meme-viewer-close" id="memeViewerClose">×</button>
+      <img id="memeViewerImage" class="meme-viewer-image" src="" alt="Meme">
+      <div class="meme-viewer-actions">
+        <button class="meme-viewer-btn" id="shareMemeBtn">
+          <i class="fa-brands fa-instagram"></i>
+          Share
+        </button>
+        <button class="meme-viewer-btn" id="downloadMemeBtn">
+          <i class="fa-solid fa-download"></i>
+          Download
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="bgA" class="page-bg-layer"></div>
   <div id="bgB" class="page-bg-layer"></div>
   <div class="card" id="card">
@@ -1019,6 +1116,17 @@
 
   // local meme placeholder used inside the player/card (keeps card separate from full-page background)
   const memePlaceholder = 'bg_img/meme_placeholder.svg';
+
+  // Helper function to get a random collected meme or placeholder
+  function getRandomMemeImage() {
+    const collected = getCollectedMemes();
+    if (collected.length === 0) {
+      return memePlaceholder;
+    }
+    const randomIndex = Math.floor(Math.random() * collected.length);
+    const memeId = collected[randomIndex];
+    return memeId === 1 ? 'memes/meme 1.png' : `memes/meme ${memeId}.jpg`;
+  }
 
   // index for meme/card image cycling (optional separate set) and current song index
   let current = 0;
@@ -1125,6 +1233,10 @@
           img.src = memeFile;
           img.alt = `Meme ${i}`;
           item.appendChild(img);
+          
+          // Make collected memes clickable
+          item.style.cursor = 'pointer';
+          item.onclick = () => openMemeViewer(memeFile);
         } else {
           item.classList.add('locked');
           const lock = document.createElement('i');
@@ -1136,6 +1248,69 @@
       document.getElementById('vaultProgress').textContent = 
         `Collected ${collected.length} of ${TOTAL_MEMES} memes. Keep playing to unlock more!`;
     }
+
+    // Meme Viewer functionality
+    function openMemeViewer(memeUrl) {
+      document.getElementById('memeViewerImage').src = memeUrl;
+      document.getElementById('memeViewerModal').classList.add('show');
+      // Store current meme URL for share/download
+      document.getElementById('memeViewerModal').dataset.currentMeme = memeUrl;
+    }
+
+    function closeMemeViewer() {
+      document.getElementById('memeViewerModal').classList.remove('show');
+    }
+
+    // Meme Viewer event handlers
+    document.getElementById('memeViewerClose').onclick = closeMemeViewer;
+    document.getElementById('memeViewerModal').onclick = (e) => {
+      if (e.target.id === 'memeViewerModal') closeMemeViewer();
+    };
+
+    // Share meme
+    document.getElementById('shareMemeBtn').onclick = async () => {
+      const memeUrl = document.getElementById('memeViewerModal').dataset.currentMeme;
+      try {
+        const response = await fetch(memeUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'meme.jpg', { type: 'image/jpeg' });
+        
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Check out this meme!',
+            text: 'From Ora Meme Player'
+          });
+        } else {
+          // Fallback: copy to clipboard or download
+          showToast('Share not supported. Try download instead!', 2000);
+        }
+      } catch (err) {
+        console.error('Share failed:', err);
+        showToast('Share failed. Try download!', 2000);
+      }
+    };
+
+    // Download meme
+    document.getElementById('downloadMemeBtn').onclick = async () => {
+      const memeUrl = document.getElementById('memeViewerModal').dataset.currentMeme;
+      try {
+        const response = await fetch(memeUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = memeUrl.split('/').pop();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Meme downloaded!', 2000);
+      } catch (err) {
+        console.error('Download failed:', err);
+        showToast('Download failed!', 2000);
+      }
+    };
 
     // Vault UI handlers
     document.getElementById('vaultBtn').onclick = () => {
@@ -1163,10 +1338,10 @@
       // set player and UI
       player.src = item.src;
       songName.textContent = item.name;
-      // meme placeholder with fade
+      // Show a random collected meme or placeholder
       memeImage.style.opacity = '0';
       memeImage.onload = () => { memeImage.style.opacity = '1'; memeImage.onload = null; };
-      memeImage.src = memePlaceholder;
+      memeImage.src = getRandomMemeImage();
       
       // Don't collect meme on init - require full listen
       
@@ -1193,10 +1368,10 @@
       player.src = item.src;
       songName.textContent = item.name;
 
-      // fade meme placeholder in (keeps card distinct)
+      // Show a random collected meme or placeholder
       memeImage.style.opacity = '0';
       memeImage.onload = () => { memeImage.style.opacity = '1'; memeImage.onload = null; };
-      memeImage.src = memePlaceholder;
+      memeImage.src = getRandomMemeImage();
 
       // Don't collect meme when track changes - require full listen
 

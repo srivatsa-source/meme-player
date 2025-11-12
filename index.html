@@ -1043,6 +1043,8 @@
           <li><i class="fa-solid fa-vault"></i> Check your vault (top-right) to see your collection</li>
           <li><i class="fa-solid fa-share-nodes"></i> Share your favorite memes on Instagram Stories</li>
           <li><i class="fa-brands fa-instagram"></i> Tag <strong>@build__ora</strong> to join our community!</li>
+          <li><i class="fa-solid fa-star"></i> <strong>Collect all 15 memes to unlock a mystery event!</strong></li>
+          <li><i class="fa-solid fa-gift"></i> Post about it & tag us on Instagram to claim your reward</li>
         </ul>
       </div>
 
@@ -1069,6 +1071,11 @@
       </div>
       <div class="vault-grid" id="vaultGrid"></div>
       <div class="vault-progress" id="vaultProgress">Collect all 15 memes by playing songs!</div>
+      <div class="vault-footer" style="text-align: center; margin-top: 12px; font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.5;">
+        <p style="margin: 6px 0;"><i class="fa-solid fa-users"></i> Tag your friends who you would send these memes to!</p>
+        <p style="margin: 6px 0;"><i class="fa-solid fa-trophy"></i> <strong style="color: #3ee07a;">Collect all 15 to unlock a mystery event!</strong></p>
+        <p style="margin: 6px 0;"><i class="fa-brands fa-instagram"></i> Post & tag <strong>@build__ora</strong> to claim your reward</p>
+      </div>
     </div>
   </div>
 
@@ -1226,8 +1233,45 @@
         
         // Show special notification for new meme unlock
         showMemeUnlockNotification(memeId, collected.length);
+        
+        // Check if all memes collected - show mystery event unlock
+        if (collected.length === TOTAL_MEMES) {
+          setTimeout(() => showMysteryEventUnlock(), 1000);
+        }
       }
     }
+    
+    function showMysteryEventUnlock() {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: #fff;
+        padding: 2rem 3rem;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        z-index: 10002;
+        text-align: center;
+        max-width: 90%;
+        animation: scaleIn 0.6s ease;
+      `;
+      notification.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🎉✨🏆</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 700;">MYSTERY EVENT UNLOCKED!</h2>
+        <p style="font-size: 1rem; margin-bottom: 1rem;">You collected all 15 memes!</p>
+        <p style="font-size: 0.9rem; opacity: 0.95;">Post about it & tag <strong>@build__ora</strong> on Instagram<br>to claim your exclusive reward! 🎁</p>
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.5s ease forwards';
+        setTimeout(() => notification.remove(), 500);
+      }, 5000);
+    }
+    
     function showMemeUnlockNotification(memeId, totalCollected) {
       const notification = document.createElement('div');
       notification.style.cssText = `
@@ -1265,6 +1309,10 @@
           }
           @keyframes fadeOut {
             to { opacity: 0; transform: translateX(400px); }
+          }
+          @keyframes scaleIn {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
           }
         `;
         document.head.appendChild(style);
@@ -1306,8 +1354,15 @@
         }
         grid.appendChild(item);
       }
-      document.getElementById('vaultProgress').textContent = 
-        `Collected ${collected.length} of ${TOTAL_MEMES} memes. Keep playing to unlock more!`;
+      
+      // Update progress message based on collection status
+      if (collected.length === TOTAL_MEMES) {
+        document.getElementById('vaultProgress').innerHTML = 
+          `🎉 <strong>Amazing! You collected all ${TOTAL_MEMES} memes!</strong> 🎉<br>Mystery event unlocked! Check your DMs on Instagram!`;
+      } else {
+        document.getElementById('vaultProgress').textContent = 
+          `Collected ${collected.length} of ${TOTAL_MEMES} memes. Keep playing to unlock more!`;
+      }
     }
 
     // Meme Viewer functionality
